@@ -38,7 +38,7 @@ while i < total_files:
 	# each segment is taken from one source file
 	print('cresting doc ', DOC_ID)
 	for j in range(t):
-		sentences.append(segment_seperator + ',' + '1' + str(DOC_ID) + str(j) + '.')
+		sentences.append(segment_seperator + ',' + '1' + ',' + str(DOC_ID) + str(j) + '.')
 		f = files[i]
 		i+=1
 		tree = ET.parse(f)
