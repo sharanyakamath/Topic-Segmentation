@@ -118,7 +118,7 @@ def read_wiki_file(path, n_context_sent = 1, remove_preface_segment=True, high_g
     label = []
     for section_ind in range(len(required_non_empty_sections)):
         sentences_ = required_non_empty_sections[section_ind].split('\n')
-        sentences = [x for x in sentences_ if x != list_sentence]
+        sentences = [x for x in sentences_ if x != list_sentence and len(x) != 0]
         if sentences:
             for sentence in sentences[:-1]:
                 final_sentences.append(sentence)
@@ -161,7 +161,7 @@ class WikipediaDataSet(Dataset):
     def __getitem__(self, index):
         path = self.textfiles[index]
 
-        return read_wiki_file(Path(path),n_context_sent = self.n_context_sent,high_granularity=self.high_granularity)
+        return read_wiki_file(Path(path),n_context_sent = self.n_context_sent,high_granularity=self.high_granularity, remove_preface_segment = False)
 
     def __len__(self):
         return len(self.textfiles)
