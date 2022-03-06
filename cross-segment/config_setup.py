@@ -4,7 +4,7 @@ import json
 data = {}
 data['n_context_sent'] = 2
 data['train_dataset'] = "WIKIPEDIA_727K" # NEWS_ARTICLES or WIKIPEDIA_727K
-data['wiki_datapath'] = "/content/drive/MyDrive/SEM2/696DS/supervised-learning/wiki_727/"
+data['wiki_datapath'] = "/content/drive/MyDrive/SEM2/696DS/supervised-learning/wiki_727_subsampled/"
 data['news_datapath'] = "/home/aakash/amagi/data/News_articles/articles/"
 
 data['wiki_batch_size'] = 2
