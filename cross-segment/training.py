@@ -20,17 +20,17 @@ import transformers
 from transformers import AdamW
 from transformers import BertModel, BertTokenizer
 
-bert = BertModel.from_pretrained('bert-base-uncased')
+bert = BertModel.from_pretrained('bert-base-uncased',ignore_mismatched_sizes=True)
 # Load the BERT tokenizer
 tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
 MAX_TOKENS = 200
 
+# tokenizer.pad({"input_ids":[1,2,3]})
 
 #### freezing bert ########
 for param in bert.parameters():
     param.requires_grad = False
     
-
 def collate_fn_wiki(batch):
     batched_data = []
     batched_targets = []
@@ -44,24 +44,65 @@ def collate_fn_wiki(batch):
                 temp = len(data[i][0].split())+len(data[i][1].split())
                 if max_tokens < temp:
                     max_tokens = temp
+                    
+                if data[i] == [] or targets[i] == [] or path == []:
+                    continue
+                    
                 batched_data.append(data[i])
                 batched_targets.append(targets[i])
                 batched_paths.append(path)
+                
+            if batched_data == []:
+                # print("\nGOT NULL BATCHED DATA\n")
+                continue
+            if batched_targets == []:
+                # print("\nGOT NULL BATCHED TARGETS\n")
+                continue
+            if batched_paths == []:
+                # print("\nGOT NULL BATCHED PATHS\n")
+                continue
+        
         except Exception as e:
             logger.info('Exception "%s" in file: "%s"', e, path)
             logger.debug('Exception!', exc_info=True)
             continue
     
     max_tokens = min(MAX_TOKENS, max_tokens)
+    
+    # print(batched_data)
+    # print(batched_targets)
+    # print(batched_paths)
+    
+    if batched_data == []:
+        # print(batched_targets)
+        # print(batched_paths)
+        batched_data.append('null')
+        batched_targets.append(0)
+        # batched_paths.append('null')
+        # print("\nGOT NULL BATCHED DATA\n")
+            
+            
     tokens = tokenizer(
                     batched_data,
                     padding = True,
                     max_length = max_tokens,
                     truncation=True)
+        
     seq = torch.tensor(tokens['input_ids'])
     mask = torch.tensor(tokens['attention_mask'])
     #y = torch.tensor(batched_targets,dtype=torch.float32).unsqueeze(axis=1)
+    
+    # print(seq)
+    # print(mask)
+    
     y = torch.tensor(targets)    
+
+    if(targets == []):
+        l = [0]
+        y = torch.tensor(l)
+        # print(y)
+        # print("\nEMPTY TARGET\n")
+        
     return seq, mask, y, batched_paths
 
 
@@ -95,7 +136,7 @@ def collate_fn_news(batch):
                     data,
                     padding = True,
                     max_length = max_tokens,
-                    truncation=True)
+                    truncation=False)
     seq = torch.tensor(tokens['input_ids'])
     mask = torch.tensor(tokens['attention_mask'])
     #y = torch.tensor(targets).unsqueeze(axis=1)
@@ -126,6 +167,12 @@ elif dataset_name == "NEWS_ARTICLES":
     
     dataset_val = NewsDataset(dataset_path+"test.csv")
     val_dataloader = DataLoader(dataset_val, batch_size=batch_size, collate_fn = collate_fn_news, shuffle=False)
+elif dataset_name == "LDC":
+    dataset_train = WikipediaDataSet(dataset_path+'data_out',n_context_sent= n_context_sent, high_granularity=False)
+    train_dataloader = DataLoader(dataset_train, batch_size=batch_size, collate_fn = collate_fn_wiki, shuffle=False)
+    
+    dataset_val = WikipediaDataSet(dataset_path+'data_out_test',n_context_sent= n_context_sent, high_granularity=False)
+    val_dataloader = DataLoader(dataset_val, batch_size=batch_size, collate_fn = collate_fn_wiki, shuffle=False)
 
 class Encoder_Classifier(nn.Module):
     def __init__(self, bert, n_classes):
@@ -167,7 +214,7 @@ def train(train_dataloader, is_early=False, max_batches=500):
     for batch in tqdm(train_dataloader):
 
         # push the batch to gpu
-        #batch = [r.to(device) for r in batch]
+        # batch = [r.to(device) for r in batch]
 
         ###### for  labeled data, computing cross entropy   #########
         sent_id, mask, labels = batch[0].to(device),batch[1].to(device), batch[2].to(device)

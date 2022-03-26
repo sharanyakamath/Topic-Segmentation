@@ -1,1 +1,1 @@
-{"n_classes": 2, "learning_rate": 0.0005, "class_weights": [0.1, 1.0], "available_gpus": "cuda:0", "freezed_epochs": 1, "unfreezed_epochs": 2, "early_stop_freezed": true, "madel_save_path": "/content/drive/MyDrive/SEM2/696DS/cross-segment/saved_models"}
+{"n_classes": 2, "learning_rate": 0.0005, "class_weights": [0.1, 1.0], "available_gpus": "cuda:0", "freezed_epochs": 1, "unfreezed_epochs": 2, "early_stop_freezed": true, "madel_save_path": "saved_models/"}
